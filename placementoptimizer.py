@@ -1915,19 +1915,20 @@ class ClusterState:
             pool_type = pool_repl_type(poolmeta["type"])
             ec_profile = poolmeta["erasure_code_profile"]
 
-            pg_shard_size_avg = pool["stored"] / pool["pg_num"]
-
             if pool_type == "ec":
                 profile = self.ec_profiles[ec_profile]
-                data_chunks = profile["data_chunks"]
-                pg_shard_size_avg /= data_chunks
-                blowup_rate = (data_chunks + profile["coding_chunks"]) / data_chunks
-
+                blowup_rate = pool["size"] / profile["data_chunks"]
             elif pool_type == "repl":
-                blowup_rate = poolmeta["size"]
-
+                blowup_rate = pool["size"]
             else:
                 raise RuntimeError(f"unknown pool_type={pool_type}")
+
+            # apparently ceph 17.2.5 reports the same value for stored & used due to some bug?
+            if pool['stored'] == pool['used']:
+                # TODO: when ec supports omap, we may need to blowup omap differently.
+                pool['used'] *= blowup_rate
+
+            pg_shard_size_avg = pool["used"] / pool["pg_num"] / pool["size"]
 
             pool.update({
                 "erasure_code_profile": ec_profile if pool_type == "ec" else None,
@@ -1936,10 +1937,6 @@ class ClusterState:
                 "blowup_rate": blowup_rate,
             })
 
-            # apparently ceph 17.2.5 reports the same value for stored & used due to some bug?
-            if pool['stored'] == pool['used']:
-                # TODO: when ec supports omap, we may need to blowup omap differently.
-                pool['used'] *= blowup_rate
 
         # create osd base structure
         for osd in self.state["osd_dump"]["osd_xinfo"]:
