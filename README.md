@@ -177,9 +177,9 @@ OSD utilization:
 
 Ongoing movement status
 ```
-./placementoptimizer.py showremapped
-./placementoptimizer.py showremapped --by-osd
-./placementoptimizer.py showremapped --by-osd --osds 13337,4242
+./placementoptimizer.py remap show
+./placementoptimizer.py remap show --by-osd
+./placementoptimizer.py remap show --by-osd --osds 13337,4242
 ```
 
 ### Dumping and Importing Cluster State
@@ -193,7 +193,7 @@ To use this file instead of the "live" cluster state, use `--state` in all the u
 
 ```
 ./placementoptimizer.py -v show --state /tmp/lolfile.xz
-./placementoptimizer.py showremapped --state /tmp/lolfile.xz
+./placementoptimizer.py remap show --state /tmp/lolfile.xz
 ./placementoptimizer.py balance --state /tmp/lolfile.xz
 ```
 
